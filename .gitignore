@@ -1,0 +1,17 @@
+.dart_tool/
+.packages
+.pub/
+build/
+*.iml
+.idea/
+.metadata
+*.lock
+.dart_tool/
+.packages
+.pub-preload-cache/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/doc/api/
+android/local.properties
+android/.gradle/
+android/app/build/
