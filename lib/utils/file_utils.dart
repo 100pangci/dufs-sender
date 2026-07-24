@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/upload_item.dart';
-import 'content_uri_helper.dart';
+import '../services/content_uri_helper.dart';
 import 'package:uuid/uuid.dart';
 
 String getFileNameFromPath(String path) {
