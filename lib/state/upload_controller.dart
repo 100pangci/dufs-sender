@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models/dufs_server.dart';
@@ -14,17 +15,17 @@ class UploadController extends ChangeNotifier {
   final SecureStore _secureStore;
   final List<UploadItem> _items = [];
   bool _uploading = false;
-  int _successCount = 0;
-  int _failCount = 0;
+  int _totalSuccess = 0;
+  int _totalFail = 0;
   DufsServer? _selectedServer;
-  Completer<void>? _uploadCompleter;
+  CancelToken? _cancelToken;
 
   UploadController(this._client, this._secureStore);
 
   List<UploadItem> get items => List.unmodifiable(_items);
   bool get uploading => _uploading;
-  int get successCount => _successCount;
-  int get failCount => _failCount;
+  int get successCount => _totalSuccess;
+  int get failCount => _totalFail;
   DufsServer? get selectedServer => _selectedServer;
 
   set selectedServer(DufsServer? server) {
@@ -49,15 +50,17 @@ class UploadController extends ChangeNotifier {
 
   void clearAll() {
     _items.clear();
-    _successCount = 0;
-    _failCount = 0;
+    _totalSuccess = 0;
+    _totalFail = 0;
     _uploading = false;
+    _cancelToken?.cancel();
+    _cancelToken = null;
     notifyListeners();
   }
 
   void cancelUpload() {
-    _uploadCompleter?.complete();
-    _uploadCompleter = null;
+    _cancelToken?.cancel('Cancelled by user');
+    _cancelToken = null;
     _uploading = false;
     notifyListeners();
   }
@@ -80,16 +83,15 @@ class UploadController extends ChangeNotifier {
 
     _selectedServer = server;
     _uploading = true;
-    _successCount = 0;
-    _failCount = 0;
+    _totalSuccess = 0;
+    _totalFail = 0;
+    _cancelToken = CancelToken();
     notifyListeners();
 
     final password = await _secureStore.loadPassword(server.id) ?? '';
-    final completer = Completer<void>();
-    _uploadCompleter = completer;
 
     for (int i = 0; i < _items.length; i++) {
-      if (completer.isCompleted) break;
+      if (_cancelToken!.isCancelled) break;
 
       final item = _items[i];
       item.status = UploadStatus.uploading;
@@ -103,11 +105,8 @@ class UploadController extends ChangeNotifier {
       } catch (e) {
         item.status = UploadStatus.failed;
         item.errorMessage = 'Cannot read file: $e';
-        _failCount++;
+        _totalFail++;
         notifyListeners();
-        if (tempPath != null) {
-          try { await File(tempPath).delete(); } catch (_) {}
-        }
         continue;
       }
 
@@ -117,6 +116,7 @@ class UploadController extends ChangeNotifier {
         server,
         uploadItem,
         password: password,
+        cancelToken: _cancelToken,
         onProgress: (sent, total) {
           if (total > 0) {
             item.progress = sent / total;
@@ -125,16 +125,16 @@ class UploadController extends ChangeNotifier {
         },
       );
 
-      if (completer.isCompleted) {
+      if (_cancelToken!.isCancelled) {
         item.status = UploadStatus.cancelled;
       } else if (result.success) {
         item.status = UploadStatus.success;
         item.progress = 1.0;
-        _successCount++;
+        _totalSuccess++;
       } else {
         item.status = UploadStatus.failed;
         item.errorMessage = result.message;
-        _failCount++;
+        _totalFail++;
       }
       notifyListeners();
 
@@ -142,6 +142,7 @@ class UploadController extends ChangeNotifier {
     }
 
     _uploading = false;
+    _cancelToken = null;
     notifyListeners();
   }
 
@@ -151,13 +152,14 @@ class UploadController extends ChangeNotifier {
     if (failedItems.isEmpty) return;
 
     _uploading = true;
-    _successCount = 0;
-    _failCount = 0;
+    _cancelToken = CancelToken();
     notifyListeners();
 
     final password = await _secureStore.loadPassword(server.id) ?? '';
 
     for (final item in failedItems) {
+      if (_cancelToken!.isCancelled) break;
+
       item.status = UploadStatus.uploading;
       item.progress = 0;
       item.errorMessage = null;
@@ -169,11 +171,8 @@ class UploadController extends ChangeNotifier {
       } catch (e) {
         item.status = UploadStatus.failed;
         item.errorMessage = 'Cannot read file: $e';
-        _failCount++;
+        _totalFail++;
         notifyListeners();
-        if (tempPath != null) {
-          try { await File(tempPath).delete(); } catch (_) {}
-        }
         continue;
       }
 
@@ -183,6 +182,7 @@ class UploadController extends ChangeNotifier {
         server,
         uploadItem,
         password: password,
+        cancelToken: _cancelToken,
         onProgress: (sent, total) {
           if (total > 0) {
             item.progress = sent / total;
@@ -191,14 +191,16 @@ class UploadController extends ChangeNotifier {
         },
       );
 
-      if (result.success) {
+      if (_cancelToken!.isCancelled) {
+        item.status = UploadStatus.cancelled;
+      } else if (result.success) {
         item.status = UploadStatus.success;
         item.progress = 1.0;
-        _successCount++;
+        _totalSuccess++;
       } else {
         item.status = UploadStatus.failed;
         item.errorMessage = result.message;
-        _failCount++;
+        _totalFail++;
       }
       notifyListeners();
 
@@ -206,6 +208,7 @@ class UploadController extends ChangeNotifier {
     }
 
     _uploading = false;
+    _cancelToken = null;
     notifyListeners();
   }
 }

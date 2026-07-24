@@ -245,10 +245,13 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                       );
+                      break;
                     case 'delete':
                       _confirmDelete(context, server);
+                      break;
                     case 'default':
                       serverController.setDefault(server.id);
+                      break;
                   }
                 },
                   itemBuilder: (_) => [

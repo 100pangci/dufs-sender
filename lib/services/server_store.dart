@@ -21,7 +21,8 @@ class ServerStore {
       return list
           .map((e) => DufsServer.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {
+    } catch (e) {
+      print('Failed to parse server config: $e');
       return [];
     }
   }

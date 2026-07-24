@@ -14,6 +14,8 @@ Future<Map<String, dynamic>?> getFileInfo(String uri) async {
     return result.cast<String, dynamic>();
   } on MissingPluginException {
     return null;
+  } on PlatformException {
+    return null;
   }
 }
 
@@ -32,6 +34,8 @@ Future<String?> copyContentUriToTemp(String uri) async {
     return result;
   } on MissingPluginException {
     return null;
+  } on PlatformException {
+    return null;
   }
 }
 
@@ -42,6 +46,8 @@ Future<int?> getContentUriSize(String uri) async {
     });
     return result;
   } on MissingPluginException {
+    return null;
+  } on PlatformException {
     return null;
   }
 }

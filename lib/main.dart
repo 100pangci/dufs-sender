@@ -7,6 +7,7 @@ import 'services/server_store.dart';
 import 'services/share_intent_service.dart';
 import 'state/server_controller.dart';
 import 'state/upload_controller.dart';
+import 'utils/file_utils.dart';
 import 'pages/home_page.dart';
 
 void main() {
@@ -117,6 +118,7 @@ class _AppRootState extends State<AppRoot> {
 
     _serverController.load();
     _setupShareIntent();
+    clearTempFiles();
   }
 
   void _setupShareIntent() {

@@ -110,7 +110,7 @@ class _ServerEditPageState extends State<ServerEditPage> {
       );
       await widget.serverController.update(
         updated,
-        password: _passwordController.text,
+        password: _passwordController.text.isEmpty ? null : _passwordController.text,
       );
     } else {
       final server = DufsServer(

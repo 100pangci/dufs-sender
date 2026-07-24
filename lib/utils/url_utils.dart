@@ -12,20 +12,33 @@ String normalizeBaseUrl(String url) {
 String normalizeRemoteDir(String dir) {
   dir = dir.trim();
   if (dir.isEmpty) return '';
-  if (dir.contains('..')) {
+
+  final decoded = Uri.decodeComponent(dir);
+  if (decoded.contains('..')) {
     throw ArgumentError('Remote directory must not contain ".."');
   }
+
   if (!dir.startsWith('/')) {
     dir = '/$dir';
   }
   while (dir.endsWith('/') && dir.length > 1) {
     dir = dir.substring(0, dir.length - 1);
   }
-  return dir;
+
+  final segments = dir.split('/');
+  final encoded = segments.map((s) {
+    if (s.isEmpty) return '';
+    return Uri.encodeComponent(s);
+  }).join('/');
+
+  return encoded.isEmpty ? '' : encoded;
 }
 
 String sanitizeFileName(String name) {
   final basename = name.split(RegExp(r'[/\\]')).last;
+  if (basename.isEmpty || basename == '.') {
+    throw ArgumentError('Invalid file name: $name');
+  }
   return basename;
 }
 

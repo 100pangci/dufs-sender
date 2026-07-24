@@ -334,6 +334,7 @@ class _UploadPageState extends State<UploadPage> {
           i.status == UploadStatus.success ||
           i.status == UploadStatus.cancelled,
     );
+    final failedCount = items.where((i) => i.status == UploadStatus.failed).length;
     final pendingCount = items
         .where((i) =>
             i.status == UploadStatus.pending || i.status == UploadStatus.failed)
@@ -354,11 +355,11 @@ class _UploadPageState extends State<UploadPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (hasFailed && !uploading && pendingCount > 0)
+            if (hasFailed && !uploading && failedCount > 0)
               OutlinedButton.icon(
                 onPressed: _retryFailed,
                 icon: const Icon(Icons.refresh),
-                label: Text('Retry Failed ($pendingCount)'),
+                label: Text('Retry Failed ($failedCount)'),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(40),
                 ),

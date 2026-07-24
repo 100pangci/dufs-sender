@@ -50,10 +50,12 @@ class ServerController extends ChangeNotifier {
   }
 
   Future<void> setDefault(String id) async {
-    for (final server in _servers) {
+    final identity = _servers.toList();
+    for (final server in identity) {
       server.isDefault = server.id == id;
     }
-    await _store.saveServers(_servers);
+    await _store.saveServers(identity);
+    _servers = identity;
     notifyListeners();
   }
 
@@ -61,7 +63,11 @@ class ServerController extends ChangeNotifier {
     return await _store.loadPassword(serverId);
   }
 
-  DufsServer getById(String id) {
-    return _servers.firstWhere((s) => s.id == id);
+  DufsServer? getById(String id) {
+    try {
+      return _servers.firstWhere((s) => s.id == id);
+    } catch (_) {
+      return null;
+    }
   }
 }

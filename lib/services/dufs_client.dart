@@ -29,6 +29,7 @@ class DufsClient {
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
           sendTimeout: const Duration(seconds: 30),
+          validateStatus: (status) => status != null,
         ));
 
   Options _authOptions(String username, String password) {
@@ -52,41 +53,29 @@ class DufsClient {
         options: _authOptions(server.username, password),
       );
       final statusCode = response.statusCode ?? 0;
-      if (statusCode == 200 ||
-          statusCode == 201 ||
-          statusCode == 204 ||
-          statusCode == 207 ||
-          statusCode == 401 ||
-          statusCode == 403) {
+      if (statusCode >= 200 && statusCode < 300) {
         return ConnectionTestResult(true, 'Connected (HTTP $statusCode)');
       }
-      return ConnectionTestResult(true, 'Server responded (HTTP $statusCode)');
-    } on DioException catch (e) {
-      if (e.response != null) {
-        final statusCode = e.response!.statusCode ?? 0;
-        if (statusCode == 401) {
-          if (server.username.isEmpty) {
-            return ConnectionTestResult(
-              false,
-              'Server requires authentication. Please set username and password.',
-            );
-          }
+      if (statusCode == 401) {
+        if (server.username.isEmpty) {
           return ConnectionTestResult(
             false,
-            'Authentication failed. Check username and password.',
-          );
-        }
-        if (statusCode == 403) {
-          return ConnectionTestResult(
-            false,
-            'Access denied (HTTP 403). Check server permissions.',
+            'Server requires authentication. Please set username and password.',
           );
         }
         return ConnectionTestResult(
           false,
-          'Server error (HTTP $statusCode)',
+          'Authentication failed. Check username and password.',
         );
       }
+      if (statusCode == 403) {
+        return ConnectionTestResult(
+          false,
+          'Access denied (HTTP 403). Check server permissions.',
+        );
+      }
+      return ConnectionTestResult(true, 'Server responded (HTTP $statusCode)');
+    } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
         return ConnectionTestResult(
@@ -110,6 +99,7 @@ class DufsClient {
     DufsServer server,
     UploadItem item, {
     String password = '',
+    CancelToken? cancelToken,
     void Function(int sent, int total)? onProgress,
   }) async {
     try {
@@ -121,7 +111,9 @@ class DufsClient {
       );
 
       if (item.localPath == null) {
-        return UploadResult(false, 'No file path available. Content URIs must be resolved before upload.');
+        return UploadResult(
+            false,
+            'No file path available. Content URIs must be resolved before upload.');
       }
       final file = File(item.localPath!);
 
@@ -140,36 +132,37 @@ class DufsClient {
         url,
         data: file.openRead(),
         options: opts,
+        cancelToken: cancelToken,
         onSendProgress: onProgress,
       );
 
       return UploadResult(true, 'Upload completed successfully');
     } on DioException catch (e) {
-      if (e.response != null) {
-        final statusCode = e.response!.statusCode ?? 0;
-        switch (statusCode) {
-          case 401:
-            return UploadResult(false, 'Authentication failed');
-          case 403:
-            return UploadResult(false, 'Permission denied');
-          case 404:
-            return UploadResult(false, 'Path not found on server');
-          case 409:
-            return UploadResult(false, 'File already exists (conflict)');
-          case 413:
-            return UploadResult(false, 'File too large for server');
-          default:
-            if (statusCode >= 500) {
-              return UploadResult(false, 'Server error (HTTP $statusCode)');
-            }
-            return UploadResult(false, 'Upload failed (HTTP $statusCode)');
-        }
+      if (e.type == DioExceptionType.cancel) {
+        return UploadResult(false, 'Upload cancelled');
       }
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        return UploadResult(false, 'Connection timed out during upload');
+      final statusCode = e.response?.statusCode ?? 0;
+      switch (statusCode) {
+        case 401:
+          return UploadResult(false, 'Authentication failed');
+        case 403:
+          return UploadResult(false, 'Permission denied');
+        case 404:
+          return UploadResult(false, 'Path not found on server');
+        case 409:
+          return UploadResult(false, 'File already exists (conflict)');
+        case 413:
+          return UploadResult(false, 'File too large for server');
+        default:
+          if (statusCode >= 500) {
+            return UploadResult(false, 'Server error (HTTP $statusCode)');
+          }
+          if (e.type == DioExceptionType.connectionTimeout ||
+              e.type == DioExceptionType.receiveTimeout) {
+            return UploadResult(false, 'Connection timed out during upload');
+          }
+          return UploadResult(false, 'Upload failed: ${e.message}');
       }
-      return UploadResult(false, 'Upload failed: ${e.message}');
     } catch (e) {
       return UploadResult(false, 'Unexpected error: $e');
     }
