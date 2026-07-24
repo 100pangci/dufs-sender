@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/localization.dart';
 import '../models/dufs_server.dart';
 import '../models/upload_item.dart';
 import '../state/server_controller.dart';
@@ -36,8 +37,8 @@ class _UploadPageState extends State<UploadPage> {
   Future<void> _startUpload() async {
     if (_selectedServer == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a server first'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).uploadSelectServerFirst),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -81,19 +82,19 @@ class _UploadPageState extends State<UploadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Upload'),
+        title: Text(AppLocalizations.of(context).uploadTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed:
                 widget.uploadController.uploading ? null : _addMoreFiles,
-            tooltip: 'Add files',
+            tooltip: AppLocalizations.of(context).uploadAddFiles,
           ),
           IconButton(
             icon: const Icon(Icons.create_new_folder),
             onPressed:
                 widget.uploadController.uploading ? null : _addFolder,
-            tooltip: 'Add folder',
+            tooltip: AppLocalizations.of(context).uploadAddFolder,
           ),
           IconButton(
             icon: const Icon(Icons.clear_all),
@@ -102,7 +103,7 @@ class _UploadPageState extends State<UploadPage> {
                 : () {
                     widget.uploadController.clearAll();
                   },
-            tooltip: 'Clear all',
+            tooltip: AppLocalizations.of(context).uploadClearAll,
           ),
         ],
       ),
@@ -117,6 +118,7 @@ class _UploadPageState extends State<UploadPage> {
           final uploading = widget.uploadController.uploading;
 
           if (items.isEmpty) {
+            final loc = AppLocalizations.of(context);
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
@@ -133,12 +135,12 @@ class _UploadPageState extends State<UploadPage> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No files to upload',
+                      loc.uploadNoFiles,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Select files from the home page or share them from other apps',
+                      loc.uploadNoFilesDesc,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color:
@@ -179,7 +181,7 @@ class _UploadPageState extends State<UploadPage> {
                       servers.any((s) => s.id == _selectedServer!.id)
                   ? _selectedServer
                   : null,
-              hint: const Text('Select server'),
+              hint: Text(AppLocalizations.of(context).uploadSelectServer),
               isExpanded: true,
               items: servers.map((server) {
                 return DropdownMenuItem(
@@ -211,7 +213,7 @@ class _UploadPageState extends State<UploadPage> {
                       ),
                       if (server.isDefault)
                         Text(
-                          'Default',
+                          AppLocalizations.of(context).homeDefault,
                           style: TextStyle(
                             fontSize: 10,
                             color: Theme.of(context).colorScheme.tertiary,
@@ -324,7 +326,7 @@ class _UploadPageState extends State<UploadPage> {
                     onPressed: uploading
                         ? null
                         : () => widget.uploadController.removeItem(item.id),
-                    tooltip: 'Remove',
+                    tooltip: AppLocalizations.of(context).uploadRemove,
                     visualDensity: VisualDensity.compact,
                   ),
               ],
@@ -356,6 +358,7 @@ class _UploadPageState extends State<UploadPage> {
 
   Widget _buildBottomBar(
       BuildContext context, List<UploadItem> items, bool uploading) {
+    final loc = AppLocalizations.of(context);
     final hasFailed = items.any((i) => i.status == UploadStatus.failed);
     final allDone = items.every(
       (i) =>
@@ -387,7 +390,7 @@ class _UploadPageState extends State<UploadPage> {
               OutlinedButton.icon(
                 onPressed: _retryFailed,
                 icon: const Icon(Icons.refresh),
-                label: Text('Retry Failed ($failedCount)'),
+                label: Text(loc.uploadRetryFailed(failedCount)),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(40),
                 ),
@@ -411,8 +414,8 @@ class _UploadPageState extends State<UploadPage> {
                       : const Icon(Icons.cloud_upload),
                   label: Text(
                     uploading
-                        ? 'Uploading...'
-                        : 'Upload ($pendingCount files)',
+                        ? loc.uploadUploading
+                        : loc.uploadUploadCount(pendingCount),
                   ),
                   style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
@@ -422,7 +425,7 @@ class _UploadPageState extends State<UploadPage> {
             if (uploading)
               TextButton(
                 onPressed: () => widget.uploadController.cancelUpload(),
-                child: const Text('Cancel'),
+                child: Text(loc.uploadCancel),
               ),
             if (allDone && items.isNotEmpty)
               FilledButton.icon(
@@ -431,7 +434,10 @@ class _UploadPageState extends State<UploadPage> {
                 },
                 icon: const Icon(Icons.done_all),
                 label: Text(
-                  'Done (${widget.uploadController.successCount} ok, ${widget.uploadController.failCount} failed)',
+                  loc.uploadDone(
+                    widget.uploadController.successCount,
+                    widget.uploadController.failCount,
+                  ),
                 ),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),

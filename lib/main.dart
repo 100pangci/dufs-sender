@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'l10n/localization.dart';
 import 'models/upload_item.dart';
 import 'services/dufs_client.dart';
 import 'services/secure_store.dart';
@@ -26,6 +28,17 @@ class DufsSenderApp extends StatelessWidget {
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),
       themeMode: ThemeMode.system,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('zh'),
+        Locale('ja'),
+      ],
+      locale: const Locale('zh'),
       home: const AppRoot(),
     );
   }

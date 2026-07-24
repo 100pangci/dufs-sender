@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/localization.dart';
 import '../models/dufs_server.dart';
 import '../models/upload_item.dart';
 import '../state/server_controller.dart';
@@ -28,7 +29,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dufs Sender'),
+        title: Text(AppLocalizations.of(context).appTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -74,6 +75,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -87,12 +89,12 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No servers yet',
+              loc.homeNoServers,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'Add a dufs server to start uploading files',
+              loc.homeNoServersDesc,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -102,19 +104,19 @@ class HomePage extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => _addServer(context),
               icon: const Icon(Icons.add),
-              label: const Text('Add Server'),
+              label: Text(loc.homeAddServer),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: () => _pickFiles(context),
               icon: const Icon(Icons.file_upload_outlined),
-              label: const Text('Select Files to Upload'),
+              label: Text(loc.homeSelectFiles),
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () => _pickFolder(context),
               icon: const Icon(Icons.folder_open),
-              label: const Text('Select Folder to Upload'),
+              label: Text(loc.homeSelectFolder),
             ),
           ],
         ),
@@ -123,6 +125,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildServerList(BuildContext context, List<DufsServer> servers) {
+    final loc = AppLocalizations.of(context);
     return RefreshIndicator(
       onRefresh: () => serverController.load(),
       child: ListView(
@@ -132,7 +135,7 @@ class HomePage extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Servers',
+                loc.homeServers,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -141,7 +144,7 @@ class HomePage extends StatelessWidget {
               TextButton.icon(
                 onPressed: () => _addServer(context),
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add'),
+                label: Text(loc.homeAdd),
               ),
             ],
           ),
@@ -151,7 +154,7 @@ class HomePage extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => _pickFiles(context),
             icon: const Icon(Icons.file_upload_outlined),
-            label: const Text('Select Files to Upload'),
+            label: Text(loc.homeSelectFiles),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
             ),
@@ -160,7 +163,7 @@ class HomePage extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => _pickFolder(context),
             icon: const Icon(Icons.folder_open),
-            label: const Text('Select Folder to Upload'),
+            label: Text(loc.homeSelectFolder),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
             ),
@@ -219,8 +222,8 @@ class HomePage extends StatelessWidget {
                               color: Theme.of(context).colorScheme.tertiaryContainer,
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text(
-                              'Default',
+                              child: Text(
+                              AppLocalizations.of(context).homeDefault,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: Theme.of(context)
@@ -270,24 +273,24 @@ class HomePage extends StatelessWidget {
                   }
                 },
                   itemBuilder: (_) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'edit',
                       child: Row(
                         children: [
-                          Icon(Icons.edit_outlined, size: 18),
-                          SizedBox(width: 8),
-                          Text('Edit'),
+                          const Icon(Icons.edit_outlined, size: 18),
+                          const SizedBox(width: 8),
+                          Text(AppLocalizations.of(context).homeEdit),
                         ],
                       ),
                     ),
                     if (!server.isDefault)
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'default',
                         child: Row(
                           children: [
-                            Icon(Icons.star_outline, size: 18),
-                            SizedBox(width: 8),
-                            Text('Set as Default'),
+                            const Icon(Icons.star_outline, size: 18),
+                            const SizedBox(width: 8),
+                            Text(AppLocalizations.of(context).homeSetDefault),
                           ],
                         ),
                       ),
@@ -299,7 +302,7 @@ class HomePage extends StatelessWidget {
                               size: 18,
                               color: Theme.of(context).colorScheme.error),
                           const SizedBox(width: 8),
-                          Text('Delete',
+                          Text(AppLocalizations.of(context).homeDelete,
                               style: TextStyle(
                                   color: Theme.of(context).colorScheme.error)),
                         ],
@@ -315,6 +318,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildSharedFileView(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final items = sharedItems!;
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -335,7 +339,7 @@ class HomePage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${items.length} file(s) shared',
+                        loc.homeSharedFiles(items.length),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               color:
                                   Theme.of(context).colorScheme.onPrimaryContainer,
@@ -363,7 +367,7 @@ class HomePage extends StatelessWidget {
         FilledButton.icon(
           onPressed: () => _goToUpload(context, items),
           icon: const Icon(Icons.cloud_upload),
-          label: const Text('Upload Now'),
+          label: Text(loc.homeUploadNow),
           style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
           ),
@@ -372,7 +376,7 @@ class HomePage extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: () => _addAndUpload(context, items),
           icon: const Icon(Icons.dns_outlined),
-          label: const Text('Select Server & Upload'),
+          label: Text(loc.homeSelectServerUpload),
         ),
       ],
     );
@@ -402,15 +406,16 @@ class HomePage extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context, DufsServer server) {
+    final loc = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Server'),
-        content: Text('Delete "${server.name}"?'),
+        title: Text(loc.homeDeleteTitle),
+        content: Text(loc.homeDeleteConfirm(server.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(loc.homeCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -420,7 +425,7 @@ class HomePage extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Delete'),
+            child: Text(loc.homeDelete),
           ),
         ],
       ),

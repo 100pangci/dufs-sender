@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/localization.dart';
 import '../models/dufs_server.dart';
 import '../services/dufs_client.dart';
 import '../state/server_controller.dart';
@@ -135,9 +136,10 @@ class _ServerEditPageState extends State<ServerEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Server' : 'Add Server'),
+        title: Text(_isEditing ? loc.serverEditEditTitle : loc.serverEditAddTitle),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -153,7 +155,7 @@ class _ServerEditPageState extends State<ServerEditPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Server Info',
+                        loc.serverEditServerInfo,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -163,33 +165,33 @@ class _ServerEditPageState extends State<ServerEditPage> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Server Name',
-                          hintText: 'e.g. Fedora Inbox',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.label_outline),
+                        decoration: InputDecoration(
+                          labelText: loc.serverEditServerName,
+                          hintText: loc.serverEditServerNameHint,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.label_outline),
                         ),
                         validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+                            (v == null || v.trim().isEmpty) ? loc.serverEditRequired : null,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _urlController,
-                        decoration: const InputDecoration(
-                          labelText: 'Server URL',
-                          hintText: 'http://192.168.1.10:5000',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.link),
+                        decoration: InputDecoration(
+                          labelText: loc.serverEditServerUrl,
+                          hintText: loc.serverEditServerUrlHint,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.link),
                         ),
                         keyboardType: TextInputType.url,
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return 'Required';
+                            return loc.serverEditRequired;
                           }
                           final url = v.trim();
                           if (!url.startsWith('http://') &&
                               !url.startsWith('https://')) {
-                            return 'Must start with http:// or https://';
+                            return loc.serverEditMustStartWithHttp;
                           }
                           return null;
                         },
@@ -197,11 +199,11 @@ class _ServerEditPageState extends State<ServerEditPage> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _dirController,
-                        decoration: const InputDecoration(
-                          labelText: 'Default Upload Directory (optional)',
-                          hintText: '/upload/',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.folder_outlined),
+                        decoration: InputDecoration(
+                          labelText: loc.serverEditDefaultDir,
+                          hintText: loc.serverEditDefaultDirHint,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.folder_outlined),
                         ),
                       ),
                     ],
@@ -216,7 +218,7 @@ class _ServerEditPageState extends State<ServerEditPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Authentication (optional)',
+                        loc.serverEditAuth,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -226,19 +228,19 @@ class _ServerEditPageState extends State<ServerEditPage> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _usernameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Username',
-                          hintText: 'admin',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person_outline),
+                        decoration: InputDecoration(
+                          labelText: loc.serverEditUsername,
+                          hintText: loc.serverEditUsernameHint,
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.person_outline),
                         ),
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordController,
                         decoration: InputDecoration(
-                          labelText: _isEditing ? 'Password (leave blank to keep)' : 'Password',
-                          hintText: 'Enter password',
+                          labelText: _isEditing ? loc.serverEditPasswordKeep : loc.serverEditPassword,
+                          hintText: loc.serverEditPasswordHint,
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.lock_outline),
                         ),
@@ -261,7 +263,7 @@ class _ServerEditPageState extends State<ServerEditPage> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.wifi_find),
-                      label: Text(_testing ? 'Testing...' : 'Test Connection'),
+                      label: Text(_testing ? loc.serverEditTesting : loc.serverEditTestConnection),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(48),
                       ),
@@ -281,7 +283,7 @@ class _ServerEditPageState extends State<ServerEditPage> {
                               ),
                             )
                           : const Icon(Icons.save),
-                      label: Text(_isEditing ? 'Update' : 'Save'),
+                      label: Text(_isEditing ? loc.serverEditUpdate : loc.serverEditSave),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size.fromHeight(48),
                       ),

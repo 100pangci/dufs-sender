@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/localization.dart';
 import '../state/server_controller.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -12,9 +13,10 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(loc.settingsTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -26,7 +28,7 @@ class SettingsPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Text(
-                    'Default Server',
+                    loc.settingsDefaultServer,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color:
                               Theme.of(context).colorScheme.onSurfaceVariant,
@@ -38,9 +40,9 @@ class SettingsPage extends StatelessWidget {
                   builder: (context, _) {
                     final servers = serverController.servers;
                     if (servers.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
-                        child: Text('No servers added yet'),
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        child: Text(loc.settingsNoServers),
                       );
                     }
                     return Column(
@@ -73,7 +75,7 @@ class SettingsPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Text(
-                    'Upload Behavior',
+                    loc.settingsUploadBehavior,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color:
                               Theme.of(context).colorScheme.onSurfaceVariant,
@@ -81,18 +83,14 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ),
                 SwitchListTile(
-                  title: const Text('Auto-select default server'),
-                  subtitle: const Text(
-                    'Pre-select default server in upload page',
-                  ),
+                  title: Text(loc.settingsAutoSelectDefault),
+                  subtitle: Text(loc.settingsAutoSelectDefaultDesc),
                   value: true,
                   onChanged: (_) {},
                 ),
                 SwitchListTile(
-                  title: const Text('Auto-upload from share'),
-                  subtitle: const Text(
-                    'Start upload immediately when sharing files (coming soon)',
-                  ),
+                  title: Text(loc.settingsAutoUploadShare),
+                  subtitle: Text(loc.settingsAutoUploadShareDesc),
                   value: false,
                   onChanged: (_) {},
                 ),
@@ -107,7 +105,7 @@ class SettingsPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Text(
-                    'About',
+                    loc.settingsAbout,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color:
                               Theme.of(context).colorScheme.onSurfaceVariant,
@@ -120,7 +118,7 @@ class SettingsPage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   title: const Text('Dufs Sender'),
-                  subtitle: const Text('Version 1.0.0'),
+                  subtitle: Text(loc.settingsVersion),
                 ),
                 ListTile(
                   leading: Icon(
@@ -128,8 +126,7 @@ class SettingsPage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   title: const Text('dufs'),
-                  subtitle: const Text(
-                      'A lightweight file server by sigoden'),
+                  subtitle: Text(loc.settingsDufsDesc),
                 ),
               ],
             ),
