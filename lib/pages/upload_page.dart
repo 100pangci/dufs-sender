@@ -70,6 +70,13 @@ class _UploadPageState extends State<UploadPage> {
     }
   }
 
+  Future<void> _addFolder() async {
+    final result = await FilePicker.platform.getDirectoryPath();
+    if (result != null && result.isNotEmpty) {
+      await widget.uploadController.addDirectory(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,6 +88,12 @@ class _UploadPageState extends State<UploadPage> {
             onPressed:
                 widget.uploadController.uploading ? null : _addMoreFiles,
             tooltip: 'Add files',
+          ),
+          IconButton(
+            icon: const Icon(Icons.create_new_folder),
+            onPressed:
+                widget.uploadController.uploading ? null : _addFolder,
+            tooltip: 'Add folder',
           ),
           IconButton(
             icon: const Icon(Icons.clear_all),
@@ -249,6 +262,9 @@ class _UploadPageState extends State<UploadPage> {
       UploadStatus.cancelled => Icons.cancel,
     };
 
+    final hasSubPath = item.relativePath != null &&
+        item.relativePath!.contains('/');
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -270,6 +286,18 @@ class _UploadPageState extends State<UploadPage> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (hasSubPath)
+                        Text(
+                                          '${item.relativePath!.substring(0, item.relativePath!.lastIndexOf('/'))}/',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                                fontStyle: FontStyle.italic,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       Text(
                         item.sizeFormatted,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(

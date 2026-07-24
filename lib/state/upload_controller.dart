@@ -9,6 +9,7 @@ import '../models/upload_item.dart';
 import '../services/content_uri_helper.dart';
 import '../services/dufs_client.dart';
 import '../services/secure_store.dart';
+import '../utils/file_utils.dart';
 
 class UploadController extends ChangeNotifier {
   final DufsClient _client;
@@ -41,6 +42,14 @@ class UploadController extends ChangeNotifier {
   void addItem(UploadItem item) {
     _items.add(item);
     notifyListeners();
+  }
+
+  Future<void> addDirectory(String dirPath) async {
+    final files = await scanDirectory(dirPath);
+    if (files.isNotEmpty) {
+      _items.addAll(files);
+      notifyListeners();
+    }
   }
 
   void removeItem(String id) {

@@ -51,3 +51,17 @@ Future<int?> getContentUriSize(String uri) async {
     return null;
   }
 }
+
+Future<List<Map<String, dynamic>>?> listContentUriDirectory(String uri) async {
+  try {
+    final result = await _channel.invokeMethod<List>('listDirectory', {
+      'uri': uri,
+    });
+    if (result == null) return null;
+    return result.cast<Map<String, dynamic>>();
+  } on MissingPluginException {
+    return null;
+  } on PlatformException {
+    return null;
+  }
+}

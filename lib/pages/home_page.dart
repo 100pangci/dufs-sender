@@ -110,6 +110,12 @@ class HomePage extends StatelessWidget {
               icon: const Icon(Icons.file_upload_outlined),
               label: const Text('Select Files to Upload'),
             ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () => _pickFolder(context),
+              icon: const Icon(Icons.folder_open),
+              label: const Text('Select Folder to Upload'),
+            ),
           ],
         ),
       ),
@@ -146,6 +152,15 @@ class HomePage extends StatelessWidget {
             onPressed: () => _pickFiles(context),
             icon: const Icon(Icons.file_upload_outlined),
             label: const Text('Select Files to Upload'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+            ),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => _pickFolder(context),
+            icon: const Icon(Icons.folder_open),
+            label: const Text('Select Folder to Upload'),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
             ),
@@ -429,6 +444,23 @@ class HomePage extends StatelessWidget {
       }).toList();
 
       uploadController.addItems(items);
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => UploadPage(
+              serverController: serverController,
+              uploadController: uploadController,
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickFolder(BuildContext context) async {
+    final result = await FilePicker.platform.getDirectoryPath();
+    if (result != null && result.isNotEmpty) {
+      await uploadController.addDirectory(result);
       if (context.mounted) {
         Navigator.of(context).push(
           MaterialPageRoute(

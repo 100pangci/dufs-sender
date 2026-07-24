@@ -10,6 +10,7 @@ class UploadItem {
   UploadStatus status;
   double progress;
   String? errorMessage;
+  String? relativePath;
 
   UploadItem({
     required this.id,
@@ -21,6 +22,7 @@ class UploadItem {
     this.status = UploadStatus.pending,
     this.progress = 0,
     this.errorMessage,
+    this.relativePath,
   });
 
   String get sizeFormatted {
@@ -51,5 +53,6 @@ class UploadItem {
         status: status ?? this.status,
         progress: progress ?? this.progress,
         errorMessage: errorMessage ?? this.errorMessage,
+        relativePath: relativePath,
       );
 }

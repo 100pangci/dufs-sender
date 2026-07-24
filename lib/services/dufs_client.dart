@@ -108,6 +108,7 @@ class DufsClient {
         server.baseUrl,
         server.defaultRemoteDir,
         fileName,
+        subPath: item.relativePath,
       );
 
       if (item.localPath == null) {

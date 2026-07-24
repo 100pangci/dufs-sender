@@ -42,15 +42,50 @@ String sanitizeFileName(String name) {
   return basename;
 }
 
-String buildUploadUrl(String baseUrl, String remoteDir, String fileName) {
+String buildUploadUrl(
+  String baseUrl,
+  String remoteDir,
+  String fileName, {
+  String? subPath,
+}) {
   final normalizedBase = normalizeBaseUrl(baseUrl);
   final sanitizedName = sanitizeFileName(fileName);
   final encodedName = Uri.encodeComponent(sanitizedName);
 
-  if (remoteDir.isEmpty) {
+  final dir = remoteDir.isEmpty ? '' : normalizeRemoteDir(remoteDir);
+
+  if (subPath != null && subPath.isNotEmpty) {
+    final normalizedSub = _normalizeSubPath(subPath);
+    if (dir.isEmpty) {
+      return '$normalizedBase$normalizedSub/$encodedName';
+    }
+    return '$normalizedBase$dir$normalizedSub/$encodedName';
+  }
+
+  if (dir.isEmpty) {
     return '$normalizedBase/$encodedName';
   }
 
-  final normalizedDir = normalizeRemoteDir(remoteDir);
-  return '$normalizedBase$normalizedDir/$encodedName';
+  return '$normalizedBase$dir/$encodedName';
+}
+
+String _normalizeSubPath(String subPath) {
+  subPath = subPath.trim();
+  if (subPath.isEmpty) return '';
+
+  final decoded = Uri.decodeComponent(subPath);
+  if (decoded.contains('..')) {
+    throw ArgumentError('Sub path must not contain ".."');
+  }
+
+  final segments = subPath.split('/');
+  final encoded = segments.map((s) {
+    if (s.isEmpty) return '';
+    return Uri.encodeComponent(s);
+  }).join('/');
+
+  if (!encoded.startsWith('/')) {
+    return '/$encoded';
+  }
+  return encoded;
 }
