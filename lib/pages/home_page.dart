@@ -83,7 +83,7 @@ class HomePage extends StatelessWidget {
             Icon(
               Icons.cloud_upload_outlined,
               size: 80,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -329,7 +329,7 @@ class HomePage extends StatelessWidget {
                               color: Theme.of(context)
                                   .colorScheme
                                   .onPrimaryContainer
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                             ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -414,7 +414,7 @@ class HomePage extends StatelessWidget {
       allowMultiple: true,
     );
     if (result != null && result.files.isNotEmpty) {
-      final uuid = const Uuid();
+      const uuid = Uuid();
       final items = result.files.map((f) {
         return UploadItem(
           id: uuid.v4(),

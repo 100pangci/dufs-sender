@@ -22,6 +22,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Create keystore and key.properties
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/upload_key.jks
+          cat > android/key.properties << EOF
+          storeFile=upload_key.jks
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+
       - name: Analyze
         run: flutter analyze
 

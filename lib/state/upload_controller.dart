@@ -12,7 +12,7 @@ import '../services/secure_store.dart';
 class UploadController extends ChangeNotifier {
   final DufsClient _client;
   final SecureStore _secureStore;
-  List<UploadItem> _items = [];
+  final List<UploadItem> _items = [];
   bool _uploading = false;
   int _successCount = 0;
   int _failCount = 0;
@@ -138,9 +138,7 @@ class UploadController extends ChangeNotifier {
       }
       notifyListeners();
 
-      if (tempPath != null) {
-        try { await File(tempPath).delete(); } catch (_) {}
-      }
+      try { await File(tempPath).delete(); } catch (_) {}
     }
 
     _uploading = false;
@@ -204,9 +202,7 @@ class UploadController extends ChangeNotifier {
       }
       notifyListeners();
 
-      if (tempPath != null) {
-        try { await File(tempPath).delete(); } catch (_) {}
-      }
+      try { await File(tempPath).delete(); } catch (_) {}
     }
 
     _uploading = false;

@@ -31,7 +31,7 @@ class ShareIntentService {
     void Function(List<UploadItem> items) onSharedFiles,
   ) async {
     final items = <UploadItem>[];
-    final uuid = const Uuid();
+    const uuid = Uuid();
 
     for (final sharedFile in sharedFiles) {
       final uri = sharedFile.path;

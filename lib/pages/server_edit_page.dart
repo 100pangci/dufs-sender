@@ -98,7 +98,7 @@ class _ServerEditPageState extends State<ServerEditPage> {
 
     setState(() => _saving = true);
 
-    final uuid = const Uuid();
+    const uuid = Uuid();
     final now = DateTime.now();
 
     if (_isEditing) {
@@ -201,7 +201,7 @@ class _ServerEditPageState extends State<ServerEditPage> {
                           labelText: 'Default Upload Directory (optional)',
                           hintText: '/upload/',
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.folder_outline),
+                          prefixIcon: Icon(Icons.folder_outlined),
                         ),
                       ),
                     ],

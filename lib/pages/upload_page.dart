@@ -56,7 +56,7 @@ class _UploadPageState extends State<UploadPage> {
       allowMultiple: true,
     );
     if (result != null && result.files.isNotEmpty) {
-      final uuid = const Uuid();
+      const uuid = Uuid();
       final items = result.files.map((f) {
         return UploadItem(
           id: uuid.v4(),
@@ -116,7 +116,7 @@ class _UploadPageState extends State<UploadPage> {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.5),
+                          .withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -141,7 +141,7 @@ class _UploadPageState extends State<UploadPage> {
           return Column(
             children: [
               if (servers.isNotEmpty)
-                _buildServerSelector(context, servers),
+                _buildServerSelector(context, servers, uploading),
               Expanded(
                 child: _buildFileList(context, items, uploading),
               ),
@@ -154,7 +154,7 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   Widget _buildServerSelector(
-      BuildContext context, List<DufsServer> servers) {
+      BuildContext context, List<DufsServer> servers, bool uploading) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Card(
@@ -201,9 +201,7 @@ class _UploadPageState extends State<UploadPage> {
                           'Default',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .tertiary,
+                            color: Theme.of(context).colorScheme.tertiary,
                           ),
                         ),
                     ],
