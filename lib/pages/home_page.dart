@@ -251,43 +251,43 @@ class HomePage extends StatelessWidget {
                       serverController.setDefault(server.id);
                   }
                 },
-                itemBuilder: (_) => [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.edit_outlined, size: 18),
-                        const SizedBox(width: 8),
-                        const Text('Edit'),
-                      ],
-                    ),
-                  ),
-                  if (!server.isDefault)
-                    PopupMenuItem(
-                      value: 'default',
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(
+                      value: 'edit',
                       child: Row(
                         children: [
-                          const Icon(Icons.star_outline, size: 18),
-                          const SizedBox(width: 8),
-                          const Text('Set as Default'),
+                          Icon(Icons.edit_outlined, size: 18),
+                          SizedBox(width: 8),
+                          Text('Edit'),
                         ],
                       ),
                     ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete_outline,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.error),
-                        const SizedBox(width: 8),
-                        Text('Delete',
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.error)),
-                      ],
+                    if (!server.isDefault)
+                      const PopupMenuItem(
+                        value: 'default',
+                        child: Row(
+                          children: [
+                            Icon(Icons.star_outline, size: 18),
+                            SizedBox(width: 8),
+                            Text('Set as Default'),
+                          ],
+                        ),
+                      ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.error),
+                          const SizedBox(width: 8),
+                          Text('Delete',
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error)),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
               ),
             ],
           ),

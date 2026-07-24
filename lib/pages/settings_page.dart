@@ -45,17 +45,18 @@ class SettingsPage extends StatelessWidget {
                     }
                     return Column(
                       children: servers.map((server) {
-                        return RadioListTile<String>(
+                        final isSelected =
+                            serverController.defaultServer?.id == server.id;
+                        return ListTile(
                           title: Text(server.name),
                           subtitle: Text(server.baseUrl,
                               maxLines: 1, overflow: TextOverflow.ellipsis),
-                          value: server.id,
-                          groupValue: serverController.defaultServer?.id,
-                          onChanged: (id) {
-                            if (id != null) {
-                              serverController.setDefault(id);
-                            }
-                          },
+                          trailing: isSelected
+                              ? Icon(Icons.check_circle,
+                                  color:
+                                      Theme.of(context).colorScheme.primary)
+                              : null,
+                          onTap: () => serverController.setDefault(server.id),
                         );
                       }).toList(),
                     );
