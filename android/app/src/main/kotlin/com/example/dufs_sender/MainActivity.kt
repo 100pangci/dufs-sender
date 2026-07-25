@@ -145,14 +145,31 @@ class MainActivity : FlutterActivity() {
 
     private fun listDirectory(uriStr: String): List<Map<String, Any?>> {
         val uri = Uri.parse(uriStr)
-        val treeUri = if (DocumentsContract.isTreeUri(uri)) {
-            uri
-        } else {
-            DocumentsContract.buildDocumentUriUsingTree(uri,
-                DocumentsContract.getTreeDocumentId(uri))
+
+        if (DocumentsContract.isTreeUri(uri)) {
+            val documentFile = DocumentFile.fromTreeUri(this, uri)
+            if (documentFile != null && documentFile.isDirectory) {
+                return listFilesRecursive(documentFile, "")
+            }
         }
-        val documentFile = DocumentFile.fromTreeUri(this, treeUri) ?: return emptyList()
-        return listFilesRecursive(documentFile, "")
+
+        try {
+            val treeDocId = DocumentsContract.getTreeDocumentId(uri)
+            val treeUri = DocumentsContract.buildDocumentUriUsingTree(uri, treeDocId)
+            val documentFile = DocumentFile.fromTreeUri(this, treeUri)
+            if (documentFile != null && documentFile.isDirectory) {
+                return listFilesRecursive(documentFile, "")
+            }
+        } catch (_: Exception) {}
+
+        try {
+            val docFile = DocumentFile.fromSingleUri(this, uri)
+            if (docFile != null && docFile.isDirectory) {
+                return listFilesRecursive(docFile, "")
+            }
+        } catch (_: Exception) {}
+
+        return emptyList()
     }
 
     private fun listFilesRecursive(dir: DocumentFile, prefix: String): List<Map<String, Any?>> {

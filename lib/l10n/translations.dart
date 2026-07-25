@@ -67,7 +67,7 @@ const Map<String, Map<String, String>> translations = {
     'settingsAutoUploadShare': 'Auto-upload from share',
     'settingsAutoUploadShareDesc': 'Start upload immediately when sharing files (coming soon)',
     'settingsAbout': 'About',
-    'settingsVersion': 'Version 1.0.0',
+    'settingsVersion': 'Version',
     'settingsDufsDesc': 'A lightweight file server by sigoden',
 
     'statusCannotReadFile': 'Cannot read file: {error}',
@@ -163,7 +163,7 @@ const Map<String, Map<String, String>> translations = {
     'settingsAutoUploadShare': '分享时自动上传',
     'settingsAutoUploadShareDesc': '分享文件时立即开始上传（即将推出）',
     'settingsAbout': '关于',
-    'settingsVersion': '版本 1.0.0',
+    'settingsVersion': '版本',
     'settingsDufsDesc': '轻量级文件服务器，作者 sigoden',
 
     'statusCannotReadFile': '无法读取文件：{error}',
@@ -259,7 +259,7 @@ const Map<String, Map<String, String>> translations = {
     'settingsAutoUploadShare': '共有から自動アップロード',
     'settingsAutoUploadShareDesc': 'ファイル共有時に即座にアップロードを開始（近日対応予定）',
     'settingsAbout': 'について',
-    'settingsVersion': 'バージョン 1.0.0',
+    'settingsVersion': 'バージョン',
     'settingsDufsDesc': 'sigoden による軽量ファイルサーバー',
 
     'statusCannotReadFile': 'ファイルを読み取れません：{error}',

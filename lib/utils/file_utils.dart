@@ -12,9 +12,16 @@ String getFileNameFromPath(String path) {
 
 Future<List<UploadItem>> scanDirectory(String dirPath) async {
   if (dirPath.startsWith('content://')) {
-    return _scanContentUriDirectory(dirPath);
+    final result = await _scanContentUriDirectory(dirPath);
+    if (result.isNotEmpty) return result;
   }
-  return _scanLocalDirectory(dirPath);
+
+  try {
+    final result = await _scanLocalDirectory(dirPath);
+    if (result.isNotEmpty) return result;
+  } catch (_) {}
+
+  return [];
 }
 
 Future<List<UploadItem>> _scanLocalDirectory(String dirPath) async {

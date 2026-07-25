@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../utils/version.dart';
 import 'translations.dart';
 
 class AppLocalizations {
@@ -14,15 +15,22 @@ class AppLocalizations {
 
   static const delegate = _AppLocalizationsDelegate();
 
-  String tr(String key, {Map<String, String>? args}) {
-    var text = _data[key];
-    if (text == null) return key;
-    if (args != null) {
-      for (final e in args.entries) {
-        text = text!.replaceAll('{$e.key}', e.value);
-      }
+  String tr(String key, {Map<String, String> args = const {}}) {
+    final raw = _data[key];
+    if (raw == null) return key;
+    if (args.isEmpty) return raw;
+    final buffer = StringBuffer();
+    int lastEnd = 0;
+
+    final pattern = RegExp(r'\{(\w+)\}');
+    for (final match in pattern.allMatches(raw)) {
+      buffer.write(raw.substring(lastEnd, match.start));
+      final paramName = match.group(1)!;
+      buffer.write(args[paramName] ?? match.group(0));
+      lastEnd = match.end;
     }
-    return text!;
+    buffer.write(raw.substring(lastEnd));
+    return buffer.toString();
   }
 
   String get appTitle => _data['appTitle'] ?? 'Dufs Sender';
@@ -135,7 +143,7 @@ class AppLocalizations {
       'Start upload immediately when sharing files (coming soon)';
   String get settingsAbout => _data['settingsAbout'] ?? 'About';
   String get settingsVersion =>
-      _data['settingsVersion'] ?? 'Version 1.0.0';
+      '${_data['settingsVersion'] ?? 'Version'} $appVersionName';
   String get settingsDufsDesc =>
       _data['settingsDufsDesc'] ?? 'A lightweight file server by sigoden';
 

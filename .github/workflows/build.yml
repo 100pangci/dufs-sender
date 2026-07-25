@@ -45,6 +45,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Sync version from pubspec.yaml
+        shell: bash
+        run: |
+          VERSION_LINE=$(grep '^version:' pubspec.yaml | head -1)
+          FULL_VERSION=$(echo "$VERSION_LINE" | sed 's/version: *//')
+          VERSION_NAME=$(echo "$FULL_VERSION" | sed 's/+.*//')
+          BUILD_NUMBER=$(echo "$FULL_VERSION" | sed 's/.*+//')
+          if [ "$BUILD_NUMBER" = "$VERSION_NAME" ]; then
+            BUILD_NUMBER="1"
+          fi
+          cat > lib/utils/version.dart << EOF
+          const appVersion = '${FULL_VERSION}';
+          const appVersionName = '${VERSION_NAME}';
+          const appBuildNumber = '${BUILD_NUMBER}';
+          EOF
+          echo "Version synced: $FULL_VERSION"
+
       - name: Create keystore and key.properties
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -68,6 +85,17 @@ jobs:
 
       - name: Build APK
         run: flutter build apk --release --split-per-abi
+
+      - name: Rename APKs with version
+        shell: bash
+        run: |
+          VERSION_NAME=$(grep 'const appVersionName' lib/utils/version.dart | tr -d " '" | sed 's/constappVersionName=//' | sed 's/;//')
+          APK_DIR="build/app/outputs/flutter-apk"
+          for f in "$APK_DIR"/*.apk; do
+            BASENAME=$(basename "$f" .apk)
+            mv "$f" "$APK_DIR/dufs-sender-${VERSION_NAME}-${BASENAME}.apk"
+          done
+          ls -la "$APK_DIR"
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
