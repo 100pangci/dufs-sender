@@ -74,7 +74,15 @@ class _UploadPageState extends State<UploadPage> {
   Future<void> _addFolder() async {
     final result = await FilePicker.platform.getDirectoryPath();
     if (result != null && result.isNotEmpty) {
-      await widget.uploadController.addDirectory(result);
+      final count = await widget.uploadController.addDirectory(result);
+      if (count == 0 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).statusCannotScanDir),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 

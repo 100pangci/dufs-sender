@@ -44,12 +44,13 @@ class UploadController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addDirectory(String dirPath) async {
+  Future<int> addDirectory(String dirPath) async {
     final files = await scanDirectory(dirPath);
     if (files.isNotEmpty) {
       _items.addAll(files);
       notifyListeners();
     }
+    return files.length;
   }
 
   void removeItem(String id) {

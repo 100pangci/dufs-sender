@@ -465,8 +465,17 @@ class HomePage extends StatelessWidget {
   Future<void> _pickFolder(BuildContext context) async {
     final result = await FilePicker.platform.getDirectoryPath();
     if (result != null && result.isNotEmpty) {
-      await uploadController.addDirectory(result);
+      final count = await uploadController.addDirectory(result);
       if (context.mounted) {
+        if (count == 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context).statusCannotScanDir),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => UploadPage(

@@ -176,6 +176,8 @@ class AppLocalizations {
       tr('statusUnexpectedError', args: {'error': error});
   String get statusCannotResolvePath =>
       _data['statusCannotResolvePath'] ?? 'Cannot resolve file path';
+  String get statusCannotScanDir =>
+      _data['statusCannotScanDir'] ?? 'Could not scan directory, please try selecting files individually';
   String get statusServerRequiresAuth =>
       _data['statusServerRequiresAuth'] ?? 'Server requires authentication';
   String get statusAuthFailedDetail =>

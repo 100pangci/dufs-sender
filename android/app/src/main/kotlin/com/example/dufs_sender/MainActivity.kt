@@ -1,6 +1,7 @@
 package com.example.dufs_sender
 
 import android.content.ContentValues
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -146,30 +147,83 @@ class MainActivity : FlutterActivity() {
     private fun listDirectory(uriStr: String): List<Map<String, Any?>> {
         val uri = Uri.parse(uriStr)
 
-        if (DocumentsContract.isTreeUri(uri)) {
-            val documentFile = DocumentFile.fromTreeUri(this, uri)
-            if (documentFile != null && documentFile.isDirectory) {
-                return listFilesRecursive(documentFile, "")
+        takeUriReadPermission(uri)
+
+        // Prefer ContentResolver query — more reliable than DocumentFile across ROMs
+        try {
+            if (DocumentsContract.isTreeUri(uri)) {
+                val treeDocId = DocumentsContract.getTreeDocumentId(uri)
+                return listViaDocumentsContract(uri, treeDocId, "")
             }
-        }
+        } catch (_: Exception) {}
 
         try {
             val treeDocId = DocumentsContract.getTreeDocumentId(uri)
             val treeUri = DocumentsContract.buildDocumentUriUsingTree(uri, treeDocId)
-            val documentFile = DocumentFile.fromTreeUri(this, treeUri)
-            if (documentFile != null && documentFile.isDirectory) {
-                return listFilesRecursive(documentFile, "")
+            takeUriReadPermission(treeUri)
+            return listViaDocumentsContract(treeUri, treeDocId, "")
+        } catch (_: Exception) {}
+
+        // DocumentFile fallback
+        try {
+            if (DocumentsContract.isTreeUri(uri)) {
+                val doc = DocumentFile.fromTreeUri(this, uri)
+                if (doc != null && doc.isDirectory) return listFilesRecursive(doc, "")
             }
         } catch (_: Exception) {}
 
         try {
-            val docFile = DocumentFile.fromSingleUri(this, uri)
-            if (docFile != null && docFile.isDirectory) {
-                return listFilesRecursive(docFile, "")
-            }
+            val doc = DocumentFile.fromSingleUri(this, uri)
+            if (doc != null && doc.isDirectory) return listFilesRecursive(doc, "")
         } catch (_: Exception) {}
 
         return emptyList()
+    }
+
+    private fun takeUriReadPermission(uri: Uri) {
+        try {
+            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        } catch (_: Exception) {}
+    }
+
+    private fun listViaDocumentsContract(
+        treeUri: Uri,
+        parentDocId: String,
+        relativePrefix: String
+    ): List<Map<String, Any?>> {
+        val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentDocId)
+        val projection = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.COLUMN_SIZE
+        )
+
+        val results = mutableListOf<Map<String, Any?>>()
+        val cursor = contentResolver.query(childrenUri, projection, null, null, null)
+        cursor?.use { c ->
+            while (c.moveToNext()) {
+                val docId = c.getString(0) ?: continue
+                val name = c.getString(1) ?: "unknown"
+                val mimeType = c.getString(2) ?: ""
+                val size = if (c.isNull(3)) null else c.getLong(3)
+                val path = if (relativePrefix.isEmpty()) name else "$relativePrefix/$name"
+
+                if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
+                    results.addAll(listViaDocumentsContract(treeUri, docId, path))
+                } else {
+                    val docUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
+                    results.add(mapOf(
+                        "name" to name,
+                        "uri" to docUri.toString(),
+                        "isDirectory" to false,
+                        "size" to size,
+                        "relativePath" to path
+                    ))
+                }
+            }
+        }
+        return results
     }
 
     private fun listFilesRecursive(dir: DocumentFile, prefix: String): List<Map<String, Any?>> {
