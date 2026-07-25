@@ -65,3 +65,14 @@ Future<List<Map<String, dynamic>>?> listContentUriDirectory(String uri) async {
     return null;
   }
 }
+
+Future<String?> pickDirectory() async {
+  try {
+    final result = await _channel.invokeMethod<String>('pickDirectory');
+    return result;
+  } on MissingPluginException {
+    return null;
+  } on PlatformException {
+    return null;
+  }
+}

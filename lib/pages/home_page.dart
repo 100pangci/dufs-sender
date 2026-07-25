@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../l10n/localization.dart';
 import '../models/dufs_server.dart';
 import '../models/upload_item.dart';
+import '../services/content_uri_helper.dart';
 import '../state/server_controller.dart';
 import '../state/upload_controller.dart';
 import 'server_edit_page.dart';
@@ -463,7 +464,7 @@ class HomePage extends StatelessWidget {
   }
 
   Future<void> _pickFolder(BuildContext context) async {
-    final result = await FilePicker.platform.getDirectoryPath();
+    final result = await pickDirectory();
     if (result != null && result.isNotEmpty) {
       final count = await uploadController.addDirectory(result);
       if (context.mounted) {

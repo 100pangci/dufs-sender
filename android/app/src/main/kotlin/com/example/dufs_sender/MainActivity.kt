@@ -8,6 +8,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.provider.DocumentsContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.NonNull
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
@@ -19,6 +20,21 @@ import java.io.FileOutputStream
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "dufs_sender/file_helper"
+    private var pickDirResult: MethodChannel.Result? = null
+
+    private val pickDirLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        val pending = pickDirResult
+        pickDirResult = null
+        if (uri != null) {
+            val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            try { contentResolver.takePersistableUriPermission(uri, flags) } catch (_: Exception) {}
+            pending?.success(uri.toString())
+        } else {
+            pending?.success(null)
+        }
+    }
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -80,6 +96,10 @@ class MainActivity : FlutterActivity() {
                         } catch (e: Exception) {
                             result.error("ERROR", e.message, null)
                         }
+                    }
+                    "pickDirectory" -> {
+                        pickDirResult = result
+                        pickDirLauncher.launch(null)
                     }
                     else -> result.notImplemented()
                 }
@@ -149,33 +169,11 @@ class MainActivity : FlutterActivity() {
 
         takeUriReadPermission(uri)
 
-        // Prefer ContentResolver query — more reliable than DocumentFile across ROMs
-        try {
-            if (DocumentsContract.isTreeUri(uri)) {
-                val treeDocId = DocumentsContract.getTreeDocumentId(uri)
-                return listViaDocumentsContract(uri, treeDocId, "")
-            }
-        } catch (_: Exception) {}
+        var result = tryContentResolver(uri)
+        if (result != null && result.isNotEmpty()) return result
 
-        try {
-            val treeDocId = DocumentsContract.getTreeDocumentId(uri)
-            val treeUri = DocumentsContract.buildDocumentUriUsingTree(uri, treeDocId)
-            takeUriReadPermission(treeUri)
-            return listViaDocumentsContract(treeUri, treeDocId, "")
-        } catch (_: Exception) {}
-
-        // DocumentFile fallback
-        try {
-            if (DocumentsContract.isTreeUri(uri)) {
-                val doc = DocumentFile.fromTreeUri(this, uri)
-                if (doc != null && doc.isDirectory) return listFilesRecursive(doc, "")
-            }
-        } catch (_: Exception) {}
-
-        try {
-            val doc = DocumentFile.fromSingleUri(this, uri)
-            if (doc != null && doc.isDirectory) return listFilesRecursive(doc, "")
-        } catch (_: Exception) {}
+        result = tryAsDocumentFile(uri)
+        if (result != null && result.isNotEmpty()) return result
 
         return emptyList()
     }
@@ -184,6 +182,44 @@ class MainActivity : FlutterActivity() {
         try {
             contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         } catch (_: Exception) {}
+    }
+
+    private fun tryContentResolver(uri: Uri): List<Map<String, Any?>>? {
+        if (!DocumentsContract.isTreeUri(uri)) return null
+        return try {
+            val treeDocId = DocumentsContract.getTreeDocumentId(uri)
+            listViaDocumentsContract(uri, treeDocId, "")
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun tryAsDocumentFile(uri: Uri): List<Map<String, Any?>>? {
+        if (DocumentsContract.isTreeUri(uri)) {
+            val doc = DocumentFile.fromTreeUri(this, uri)
+            if (doc != null && doc.isDirectory) {
+                return listFilesRecursive(doc, "")
+            }
+        }
+
+        try {
+            val treeDocId = DocumentsContract.getTreeDocumentId(uri)
+            val treeUri = DocumentsContract.buildDocumentUriUsingTree(uri, treeDocId)
+            takeUriReadPermission(treeUri)
+            val doc = DocumentFile.fromTreeUri(this, treeUri)
+            if (doc != null && doc.isDirectory) {
+                return listFilesRecursive(doc, "")
+            }
+        } catch (_: Exception) {}
+
+        try {
+            val doc = DocumentFile.fromSingleUri(this, uri)
+            if (doc != null && doc.isDirectory) {
+                return listFilesRecursive(doc, "")
+            }
+        } catch (_: Exception) {}
+
+        return null
     }
 
     private fun listViaDocumentsContract(
@@ -196,17 +232,22 @@ class MainActivity : FlutterActivity() {
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
             DocumentsContract.Document.COLUMN_DISPLAY_NAME,
             DocumentsContract.Document.COLUMN_MIME_TYPE,
-            DocumentsContract.Document.COLUMN_SIZE
+            DocumentsContract.Document.COLUMN_SIZE,
         )
 
         val results = mutableListOf<Map<String, Any?>>()
         val cursor = contentResolver.query(childrenUri, projection, null, null, null)
         cursor?.use { c ->
+            val idIdx = c.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+            val nameIdx = c.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+            val mimeIdx = c.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
+            val sizeIdx = c.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+
             while (c.moveToNext()) {
-                val docId = c.getString(0) ?: continue
-                val name = c.getString(1) ?: "unknown"
-                val mimeType = c.getString(2) ?: ""
-                val size = if (c.isNull(3)) null else c.getLong(3)
+                val docId = if (idIdx >= 0) c.getString(idIdx) else null ?: continue
+                val name = if (nameIdx >= 0) c.getString(nameIdx) else "unknown"
+                val mimeType = if (mimeIdx >= 0) c.getString(mimeIdx) else ""
+                val size = if (sizeIdx >= 0 && !c.isNull(sizeIdx)) c.getLong(sizeIdx) else null
                 val path = if (relativePrefix.isEmpty()) name else "$relativePrefix/$name"
 
                 if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
@@ -218,7 +259,7 @@ class MainActivity : FlutterActivity() {
                         "uri" to docUri.toString(),
                         "isDirectory" to false,
                         "size" to size,
-                        "relativePath" to path
+                        "relativePath" to path,
                     ))
                 }
             }

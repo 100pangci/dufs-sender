@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../l10n/localization.dart';
 import '../models/dufs_server.dart';
 import '../models/upload_item.dart';
+import '../services/content_uri_helper.dart';
 import '../state/server_controller.dart';
 import '../state/upload_controller.dart';
 
@@ -72,7 +73,7 @@ class _UploadPageState extends State<UploadPage> {
   }
 
   Future<void> _addFolder() async {
-    final result = await FilePicker.platform.getDirectoryPath();
+    final result = await pickDirectory();
     if (result != null && result.isNotEmpty) {
       final count = await widget.uploadController.addDirectory(result);
       if (count == 0 && mounted) {
